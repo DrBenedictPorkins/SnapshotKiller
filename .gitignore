@@ -7,3 +7,15 @@
 *.xcscmblueprint
 DerivedData/
 build/
+# macOS system files
+.DS_Store
+
+# Xcode user-specific files
+*.xcuserstate
+*.xcworkspace
+*.xcscmblueprint
+xcuserdata/
+xcdebugger/
+DerivedData/
+build/
+
