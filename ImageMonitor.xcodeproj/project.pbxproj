@@ -6,17 +6,22 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B4427B982D5A96C6004DA9FF /* DirectoryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4427B932D5A96C6004DA9FF /* DirectoryMonitor.swift */; };
+		B4427B992D5A96C6004DA9FF /* DirectoryMonitorDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4427B942D5A96C6004DA9FF /* DirectoryMonitorDelegate.swift */; };
+		B4427B9A2D5A96C6004DA9FF /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4427B912D5A96C6004DA9FF /* AppDelegate.swift */; };
+		B4427B9E2D5A9853004DA9FF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B4427B9D2D5A9853004DA9FF /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		B4427B912D5A96C6004DA9FF /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		B4427B932D5A96C6004DA9FF /* DirectoryMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryMonitor.swift; sourceTree = "<group>"; };
+		B4427B942D5A96C6004DA9FF /* DirectoryMonitorDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryMonitorDelegate.swift; sourceTree = "<group>"; };
+		B4427B952D5A96C6004DA9FF /* ImageMonitor.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ImageMonitor.entitlements; sourceTree = "<group>"; };
+		B4427B962D5A96C6004DA9FF /* ImageMonitor-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ImageMonitor-Bridging-Header.h"; sourceTree = "<group>"; };
+		B4427B9D2D5A9853004DA9FF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B4498DDF2D5662C900A5C16F /* ImageMonitor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ImageMonitor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		B4498DE12D5662C900A5C16F /* ImageMonitor */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ImageMonitor;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		B4498DDC2D5662C900A5C16F /* Frameworks */ = {
@@ -32,7 +37,12 @@
 		B4498DD62D5662C900A5C16F = {
 			isa = PBXGroup;
 			children = (
-				B4498DE12D5662C900A5C16F /* ImageMonitor */,
+				B4427B9D2D5A9853004DA9FF /* Assets.xcassets */,
+				B4427B912D5A96C6004DA9FF /* AppDelegate.swift */,
+				B4427B932D5A96C6004DA9FF /* DirectoryMonitor.swift */,
+				B4427B942D5A96C6004DA9FF /* DirectoryMonitorDelegate.swift */,
+				B4427B952D5A96C6004DA9FF /* ImageMonitor.entitlements */,
+				B4427B962D5A96C6004DA9FF /* ImageMonitor-Bridging-Header.h */,
 				B4498DE02D5662C900A5C16F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -60,9 +70,6 @@
 			);
 			dependencies = (
 			);
-			fileSystemSynchronizedGroups = (
-				B4498DE12D5662C900A5C16F /* ImageMonitor */,
-			);
 			name = ImageMonitor;
 			packageProductDependencies = (
 			);
@@ -82,6 +89,7 @@
 				TargetAttributes = {
 					B4498DDE2D5662C900A5C16F = {
 						CreatedOnToolsVersion = 16.2;
+						LastSwiftMigration = 1620;
 					};
 				};
 			};
@@ -109,6 +117,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B4427B9E2D5A9853004DA9FF /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -119,6 +128,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B4427B982D5A96C6004DA9FF /* DirectoryMonitor.swift in Sources */,
+				B4427B992D5A96C6004DA9FF /* DirectoryMonitorDelegate.swift in Sources */,
+				B4427B9A2D5A96C6004DA9FF /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -129,6 +141,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=*]" = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -192,6 +205,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=*]" = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -246,13 +260,17 @@
 		B4498DEF2D5662CA00A5C16F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=*]" = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = ImageMonitor/ImageMonitor.entitlements;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = ImageMonitor.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
@@ -264,6 +282,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.byteclub.ImageMonitor;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "ImageMonitor-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -271,13 +291,16 @@
 		B4498DF02D5662CA00A5C16F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = ImageMonitor/ImageMonitor.entitlements;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = ImageMonitor.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
@@ -289,6 +312,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.byteclub.ImageMonitor;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "ImageMonitor-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
