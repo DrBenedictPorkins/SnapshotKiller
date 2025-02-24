@@ -11,6 +11,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     private var monitoredPathItem: NSMenuItem!  // Menu item to show current path
     private let lastMonitoredPathKey = "lastMonitoredPath"
     private let notifyOnDeletionKey = "notifyOnDeletion"  // New key for the setting
+    private let convertHEICKey = "convertHEICToJPG"  // Key for HEIC to JPG conversion setting
     
     // Add this to create the application programmatically
     static func main() {
@@ -24,6 +25,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         // Set default value for notify on deletion if not set
         if UserDefaults.standard.object(forKey: notifyOnDeletionKey) == nil {
             UserDefaults.standard.set(true, forKey: notifyOnDeletionKey)  // Default to true
+        }
+        
+        // Set default value for HEIC conversion if not set
+        if UserDefaults.standard.object(forKey: convertHEICKey) == nil {
+            UserDefaults.standard.set(false, forKey: convertHEICKey)  // Default to false
         }
         
         // Set the delegate first
@@ -97,6 +103,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         notifyItem.state = UserDefaults.standard.bool(forKey: notifyOnDeletionKey) ? .on : .off
         menu.addItem(notifyItem)
         
+        // Add HEIC conversion checkbox
+        let convertItem = NSMenuItem(title: "Convert HEIC to JPG", action: #selector(toggleConvertHEIC(_:)), keyEquivalent: "")
+        convertItem.state = UserDefaults.standard.bool(forKey: convertHEICKey) ? .on : .off
+        menu.addItem(convertItem)
+        
         // Add separator
         menu.addItem(NSMenuItem.separator())
         
@@ -112,6 +123,35 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         // Save the new state
         UserDefaults.standard.set(sender.state == .on, forKey: notifyOnDeletionKey)
         UserDefaults.standard.synchronize()
+    }
+    
+    @objc func toggleConvertHEIC(_ sender: NSMenuItem) {
+        // Toggle the state
+        sender.state = sender.state == .on ? .off : .on
+        
+        // Save the new state
+        UserDefaults.standard.set(sender.state == .on, forKey: convertHEICKey)
+        UserDefaults.standard.synchronize()
+        
+        // Check if ImageMagick is installed
+        if sender.state == .on {
+            let fileManager = FileManager.default
+            if !fileManager.fileExists(atPath: "/usr/local/bin/magick") {
+                let alert = NSAlert()
+                alert.messageText = "ImageMagick Not Found"
+                alert.informativeText = "HEIC conversion requires ImageMagick to be installed at /usr/local/bin/magick. Please install it using Homebrew with:\n\nbrew install imagemagick"
+                alert.alertStyle = .warning
+                alert.addButton(withTitle: "OK")
+                
+                DispatchQueue.main.async {
+                    alert.runModal()
+                    // Turn off the setting since ImageMagick isn't available
+                    sender.state = .off
+                    UserDefaults.standard.set(false, forKey: self.convertHEICKey)
+                    UserDefaults.standard.synchronize()
+                }
+            }
+        }
     }
     
     private func updateMonitoredPathDisplay() {

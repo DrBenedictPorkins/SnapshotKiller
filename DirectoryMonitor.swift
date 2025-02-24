@@ -4,6 +4,7 @@ class DirectoryMonitor {
     private var stream: FSEventStreamRef?
     private let path: String
     weak var delegate: DirectoryMonitorDelegate?
+    private let convertHEICKey = "convertHEICToJPG"
     
     init(path: String) {
         self.path = path
@@ -41,11 +42,28 @@ class DirectoryMonitor {
                     let path = String(cString: pathsPointer[Int(i)])
                   
                     if isCreated {
-                        
                         // Verify the file exists and is an image
                         if FileManager.default.fileExists(atPath: path) && observer.isImageFile(path) {
-                            DispatchQueue.main.async {
-                                observer.delegate?.directoryMonitor(observer, didDetectNewImage: path)
+                            // Check if it's a HEIC file and conversion is enabled
+                            if observer.isHEICFile(path) && UserDefaults.standard.bool(forKey: observer.convertHEICKey) {
+                                // Convert the file
+                                DispatchQueue.global(qos: .userInitiated).async {
+                                    if let jpgPath = observer.convertHEICToJPG(heicPath: path) {
+                                        DispatchQueue.main.async {
+                                            observer.delegate?.directoryMonitor(observer, didDetectNewImage: jpgPath)
+                                        }
+                                    } else {
+                                        // Conversion failed, just notify of the original file
+                                        DispatchQueue.main.async {
+                                            observer.delegate?.directoryMonitor(observer, didDetectNewImage: path)
+                                        }
+                                    }
+                                }
+                            } else {
+                                // Non-HEIC file or conversion disabled
+                                DispatchQueue.main.async {
+                                    observer.delegate?.directoryMonitor(observer, didDetectNewImage: path)
+                                }
                             }
                         }
                     }
@@ -79,5 +97,53 @@ class DirectoryMonitor {
     private func isImageFile(_ path: String) -> Bool {
         let imageExtensions = ["jpg", "jpeg", "png", "gif", "heic", "webp"]
         return imageExtensions.contains(URL(fileURLWithPath: path).pathExtension.lowercased())
+    }
+    
+    func isHEICFile(_ path: String) -> Bool {
+        return URL(fileURLWithPath: path).pathExtension.lowercased() == "heic"
+    }
+    
+    func convertHEICToJPG(heicPath: String) -> String? {
+        let heicURL = URL(fileURLWithPath: heicPath)
+        let jpgPath = heicURL.deletingPathExtension().path + ".jpg"
+        let jpgURL = URL(fileURLWithPath: jpgPath)
+        
+        // Create a process to run the magick command
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/local/bin/magick")
+        
+        // Set the arguments with quality 80
+        process.arguments = [
+            "convert",
+            heicPath,
+            "-quality", "80",
+            jpgPath
+        ]
+        
+        // Set up the process
+        let outputPipe = Pipe()
+        let errorPipe = Pipe()
+        process.standardOutput = outputPipe
+        process.standardError = errorPipe
+        
+        do {
+            try process.run()
+            process.waitUntilExit()
+            
+            // Check if the process was successful
+            if process.terminationStatus == 0 && FileManager.default.fileExists(atPath: jpgPath) {
+                print("Successfully converted HEIC to JPG: \(jpgPath)")
+                return jpgPath
+            } else {
+                // Read the error output if conversion failed
+                let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+                let errorMessage = String(data: errorData, encoding: .utf8) ?? "Unknown error"
+                print("Failed to convert HEIC to JPG. Error: \(errorMessage)")
+                return nil
+            }
+        } catch {
+            print("Failed to start conversion process: \(error.localizedDescription)")
+            return nil
+        }
     }
 }
