@@ -16,6 +16,7 @@ ImageMonitor solves this problem by automatically detecting new screenshot files
     - 1.5 minutes
 - 🎯 Allows custom folder monitoring
 - 💾 Remembers your last monitored folder
+- 🖼️ HEIC to JPG conversion (80% quality)
 - ⚙️ Configurable notification settings
 
 ## Usage
@@ -26,6 +27,7 @@ ImageMonitor solves this problem by automatically detecting new screenshot files
 4. Click the menu bar icon to:
     - Choose a different folder to monitor
     - Toggle deletion notifications
+    - Enable/disable HEIC to JPG conversion
     - Quit the application
 
 When a new screenshot is detected, you'll receive a notification with options to:
@@ -38,6 +40,7 @@ When a new screenshot is detected, you'll receive a notification with options to
 
 - macOS (built with Swift)
 - Notification permissions (requested on first launch)
+- ImageMagick (optional, required for HEIC conversion feature)
 
 ## Privacy
 
