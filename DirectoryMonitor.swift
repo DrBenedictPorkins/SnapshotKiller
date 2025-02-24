@@ -106,7 +106,6 @@ class DirectoryMonitor {
     func convertHEICToJPG(heicPath: String) -> String? {
         let heicURL = URL(fileURLWithPath: heicPath)
         let jpgPath = heicURL.deletingPathExtension().path + ".jpg"
-        let jpgURL = URL(fileURLWithPath: jpgPath)
         
         // Create a process to run the magick command
         let process = Process()
