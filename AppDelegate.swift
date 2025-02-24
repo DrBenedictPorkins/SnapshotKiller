@@ -338,74 +338,108 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
             return
         }
         
-        switch response.actionIdentifier {
-        case "delete10":
-            scheduleFileDeletion(filePath: filePath, after: 10)
-        case "delete30":
-            scheduleFileDeletion(filePath: filePath, after: 30)
-        case "delete60":
-            scheduleFileDeletion(filePath: filePath, after: 60)
-        case "delete90":
-            scheduleFileDeletion(filePath: filePath, after: 90)
-        default:
-            print("Unknown action identifier: \(response.actionIdentifier)")
+        // Match the action identifier to our enum
+        let identifier = response.actionIdentifier
+        
+        if identifier.hasPrefix("delete") {
+            if let seconds = getDeleteTimeFromIdentifier(identifier) {
+                scheduleFileDeletion(filePath: filePath, after: TimeInterval(seconds))
+            } else {
+                print("Unknown delete time in identifier: \(identifier)")
+            }
+        } else {
+            print("Unknown action identifier: \(identifier)")
         }
         
         completionHandler()
+    }
+    
+    private func getDeleteTimeFromIdentifier(_ identifier: String) -> Int? {
+        // Extract the numeric part from identifiers like "delete10", "delete30", etc.
+        let numericPart = identifier.replacingOccurrences(of: "delete", with: "")
+        return Int(numericPart)
     }
     
     // Allow notifications to be shown when app is in foreground
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                               willPresent notification: UNNotification,
                               withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        completionHandler([.banner, .sound])
+        if #available(macOS 11.0, *) {
+            completionHandler([.banner, .sound, .list])
+        } else {
+            completionHandler([.alert, .sound])
+        }
     }
 }
 
 extension AppDelegate: DirectoryMonitorDelegate {
+    // Deletion time options in seconds
+    private enum DeletionTime: Int {
+        case tenSeconds = 10
+        case thirtySeconds = 30
+        case oneMinute = 60
+        case oneAndHalfMinutes = 90
+        
+        var title: String {
+            switch self {
+            case .tenSeconds: return "10 seconds"
+            case .thirtySeconds: return "30 seconds"
+            case .oneMinute: return "1 minute"
+            case .oneAndHalfMinutes: return "1.5 minutes"
+            }
+        }
+        
+        var identifier: String {
+            switch self {
+            case .tenSeconds: return "delete10"
+            case .thirtySeconds: return "delete30"
+            case .oneMinute: return "delete60"
+            case .oneAndHalfMinutes: return "delete90"
+            }
+        }
+    }
+    
+    // Flag to ensure we only register notification categories once
+    private static var hasRegisteredNotificationCategories = false
+    
     func directoryMonitor(_ monitor: DirectoryMonitor, didDetectNewImage path: String) {
+        // Setup is only needed once - moved to a separate method
+        setupNotificationCategories()
+        
+        // Create and post notification
+        postNewImageNotification(for: path)
+    }
+    
+    private func setupNotificationCategories() {
+        // Only register category once per app launch
+        guard !AppDelegate.hasRegisteredNotificationCategories else { return }
+        
+        // Create actions dynamically
+        let deletionTimes: [DeletionTime] = [.tenSeconds, .thirtySeconds, .oneMinute, .oneAndHalfMinutes]
+        let actions = deletionTimes.map { time in
+            UNNotificationAction(identifier: time.identifier, title: time.title, options: [])
+        }
+        
+        // Create category with actions
+        let category = UNNotificationCategory(
+            identifier: "imageDetected",
+            actions: actions,
+            intentIdentifiers: [],
+            options: []
+        )
+        
+        // Register category
+        UNUserNotificationCenter.current().setNotificationCategories([category])
+        AppDelegate.hasRegisteredNotificationCategories = true
+    }
+    
+    private func postNewImageNotification(for path: String) {
         // Create notification content
         let content = UNMutableNotificationContent()
         content.title = "New Screenshot Detected"
         content.body = "Would you like to delete '\(URL(fileURLWithPath: path).lastPathComponent)'?"
         content.sound = .default
         content.userInfo = ["filePath": path]
-        
-        // Add actions as buttons
-        let delete10Action = UNNotificationAction(
-            identifier: "delete10",
-            title: "10 seconds",
-            options: [.foreground]  // Makes it appear as a button
-        )
-        
-        let delete30Action = UNNotificationAction(
-            identifier: "delete30",
-            title: "30 seconds",
-            options: [.foreground]  // Makes it appear as a button
-        )
-        
-        let delete60Action = UNNotificationAction(
-            identifier: "delete60",
-            title: "1 minute",
-            options: [.foreground]  // Makes it appear as a button
-        )
-        
-        let delete90Action = UNNotificationAction(
-            identifier: "delete90",
-            title: "1.5 minutes",
-            options: [.foreground]  // Makes it appear as a button
-        )
-        
-        // Create category with actions
-        let category = UNNotificationCategory(
-            identifier: "imageDetected",
-            actions: [delete10Action, delete30Action, delete60Action, delete90Action],
-            intentIdentifiers: [],
-            options: [.customDismissAction]  // Allows for custom dismiss handling
-        )
-        
-        // Register category
-        UNUserNotificationCenter.current().setNotificationCategories([category])
         content.categoryIdentifier = "imageDetected"
         
         // Create and add notification request
