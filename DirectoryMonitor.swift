@@ -36,37 +36,10 @@ class DirectoryMonitor {
                 // Iterate through the paths
                 for i in 0..<numEvents {
                     let flag = eventFlags[Int(i)]
-                    
-                    // Check if this is a creation event
-                    let isCreated = (flag & UInt32(kFSEventStreamEventFlagItemRenamed)) != 0
                     let path = String(cString: pathsPointer[Int(i)])
-                  
-                    if isCreated {
-                        // Verify the file exists and is an image
-                        if FileManager.default.fileExists(atPath: path) && observer.isImageFile(path) {
-                            // Check if it's a HEIC file and conversion is enabled
-                            if observer.isHEICFile(path) && UserDefaults.standard.bool(forKey: observer.convertHEICKey) {
-                                // Convert the file
-                                DispatchQueue.global(qos: .userInitiated).async {
-                                    if let jpgPath = observer.convertHEICToJPG(heicPath: path) {
-                                        DispatchQueue.main.async {
-                                            observer.delegate?.directoryMonitor(observer, didDetectNewImage: jpgPath)
-                                        }
-                                    } else {
-                                        // Conversion failed, just notify of the original file
-                                        DispatchQueue.main.async {
-                                            observer.delegate?.directoryMonitor(observer, didDetectNewImage: path)
-                                        }
-                                    }
-                                }
-                            } else {
-                                // Non-HEIC file or conversion disabled
-                                DispatchQueue.main.async {
-                                    observer.delegate?.directoryMonitor(observer, didDetectNewImage: path)
-                                }
-                            }
-                        }
-                    }
+                    
+                    // Process the file event
+                    observer.processFileEvent(flag: flag, path: path)
                 }
             }
         }
@@ -103,36 +76,82 @@ class DirectoryMonitor {
         return URL(fileURLWithPath: path).pathExtension.lowercased() == "heic"
     }
     
-    func convertHEICToJPG(heicPath: String) -> String? {
+    private func processFileEvent(flag: UInt32, path: String) {
+        // Check if this is a creation event
+        let isCreated = (flag & UInt32(kFSEventStreamEventFlagItemRenamed)) != 0
+        guard isCreated else { return }
+        
+        // Verify the file exists and is an image
+        guard FileManager.default.fileExists(atPath: path) && isImageFile(path) else { return }
+        
+        // Handle HEIC files differently if conversion is enabled
+        if isHEICFile(path) && UserDefaults.standard.bool(forKey: convertHEICKey) {
+            handleHEICFile(at: path)
+        } else {
+            notifyDelegate(with: path)
+        }
+    }
+    
+    private func handleHEICFile(at path: String) {
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            
+            if let jpgPath = self.convertHEICToJPG(heicPath: path) {
+                self.notifyDelegate(with: jpgPath)
+            } else {
+                // Conversion failed, just notify of the original file
+                self.notifyDelegate(with: path)
+            }
+        }
+    }
+    
+    private func notifyDelegate(with path: String) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.delegate?.directoryMonitor(self, didDetectNewImage: path)
+        }
+    }
+    
+    private func convertHEICToJPG(heicPath: String) -> String? {
         let heicURL = URL(fileURLWithPath: heicPath)
         let jpgPath = heicURL.deletingPathExtension().path + ".jpg"
         
-        // Create a process to run the magick command
+        // Create the ImageMagick process
+        let process = configureImageMagickProcess(inputPath: heicPath, outputPath: jpgPath)
+        
+        return executeConversion(process: process, outputPath: jpgPath)
+    }
+    
+    private func configureImageMagickProcess(inputPath: String, outputPath: String) -> Process {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/local/bin/magick")
         
         // Set the arguments with quality 80
         process.arguments = [
             "convert",
-            heicPath,
+            inputPath,
             "-quality", "80",
-            jpgPath
+            outputPath
         ]
         
-        // Set up the process
-        let outputPipe = Pipe()
-        let errorPipe = Pipe()
-        process.standardOutput = outputPipe
-        process.standardError = errorPipe
+        // Set up the pipes
+        process.standardOutput = Pipe()
+        process.standardError = Pipe()
+        
+        return process
+    }
+    
+    private func executeConversion(process: Process, outputPath: String) -> String? {
+        let errorPipe = process.standardError as! Pipe
         
         do {
             try process.run()
             process.waitUntilExit()
             
             // Check if the process was successful
-            if process.terminationStatus == 0 && FileManager.default.fileExists(atPath: jpgPath) {
-                print("Successfully converted HEIC to JPG: \(jpgPath)")
-                return jpgPath
+            if process.terminationStatus == 0 && FileManager.default.fileExists(atPath: outputPath) {
+                print("Successfully converted HEIC to JPG: \(outputPath)")
+                return outputPath
             } else {
                 // Read the error output if conversion failed
                 let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
